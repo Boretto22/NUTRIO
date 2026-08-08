@@ -1,0 +1,162 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    /* Alto de la barra de navegación inferior, sin el safe-area. */
+    --nav-h: 3.25rem;
+    /* Espacio total que ocupa la nav, usado para no taparla con contenido. */
+    --nav-total: calc(var(--nav-h) + env(safe-area-inset-bottom));
+    /**
+     * Altura a la que flotan los toasts. Las pantallas con barra de acciones
+     * inferior la suben para no tapar los botones (ver FormularioComida).
+     */
+    --toast-bottom: calc(var(--nav-total) + 2.25rem);
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    /* Crema del logo en claro; negro neutro en oscuro. */
+    @apply bg-crema font-sans text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  /* Oculta las flechas de los inputs numéricos: usamos steppers propios. */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-marca-500 ring-offset-2 ring-offset-crema dark:ring-offset-neutral-950;
+  }
+}
+
+@layer components {
+  .tarjeta {
+    @apply rounded-2xl border border-neutral-200/70 bg-white shadow-suave dark:border-neutral-800 dark:bg-neutral-900;
+  }
+
+  .campo {
+    @apply w-full rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-[15px] text-neutral-900 placeholder:text-neutral-400 focus:border-marca-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:placeholder:text-neutral-500;
+  }
+
+  .btn {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 text-[15px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-45;
+  }
+
+  /* `600` y no `500`: el verde exacto del logo con texto blanco se queda en 3.99:1. */
+  .btn-primario {
+    @apply btn bg-marca-600 text-white hover:bg-marca-700 active:bg-marca-800;
+  }
+
+  .btn-secundario {
+    @apply btn border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800;
+  }
+
+  .btn-peligro {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+
+  .btn-fantasma {
+    @apply btn text-neutral-600 hover:bg-neutral-200/60 dark:text-neutral-300 dark:hover:bg-neutral-800;
+  }
+
+  .icono-btn {
+    @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-neutral-600 transition-colors hover:bg-neutral-200/60 dark:text-neutral-300 dark:hover:bg-neutral-800;
+  }
+
+  .etiqueta {
+    @apply mb-1.5 block text-[13px] font-semibold text-neutral-600 dark:text-neutral-400;
+  }
+
+  .titulo-seccion {
+    @apply text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400;
+  }
+
+  /**
+   * Panel a pantalla completa que reserva el hueco de la bottom nav.
+   * Su contenido hace scroll por dentro, así la barra de acciones inferior
+   * nunca puede quedar tapada por la navegación.
+   */
+  .panel-pantalla {
+    @apply fixed inset-0 z-30 mx-auto flex max-w-md flex-col bg-crema dark:bg-neutral-950;
+    padding-bottom: var(--nav-total);
+  }
+
+  /* Resalte temporal del plato recién guardado al volver a Hoy. */
+  .resaltado {
+    animation: resaltar 1.8s ease-out;
+  }
+
+  /* Entrada del logo en la pantalla de arranque. */
+  .splash-logo {
+    animation: splash-entrada 600ms ease-out both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-logo {
+    animation: none;
+  }
+}
+
+@keyframes splash-entrada {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes resaltar {
+  0%,
+  55% {
+    box-shadow: 0 0 0 3px theme('colors.marca.500');
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* Barra de desplazamiento discreta en escritorio */
+@media (pointer: fine) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-neutral-300 dark:bg-neutral-700;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+.sin-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.sin-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
