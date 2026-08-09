@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
@@ -21,6 +22,7 @@ createRoot(contenedor).render(
             <App />
             <Splash />
           </LicenciaGate>
+          <Analytics />
         </ToastProvider>
       </AppProvider>
     </HashRouter>
