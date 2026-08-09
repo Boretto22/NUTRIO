@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 
 import App from '@/App';
+import { LicenciaGate } from '@/components/LicenciaGate';
 import { Splash } from '@/components/Splash';
 import { ToastProvider } from '@/components/Toast';
 import { AppProvider } from '@/store/AppContext';
@@ -16,8 +17,10 @@ createRoot(contenedor).render(
     <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AppProvider>
         <ToastProvider>
-          <App />
-          <Splash />
+          <LicenciaGate>
+            <App />
+            <Splash />
+          </LicenciaGate>
         </ToastProvider>
       </AppProvider>
     </HashRouter>

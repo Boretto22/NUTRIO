@@ -21,6 +21,12 @@ npm run test      # ejecuta la suite de Vitest
 npm run typecheck # solo comprobación de tipos
 npm run icons     # regenera emblem/wordmark/lockup + iconos PWA desde logo.png
 
+# Licencia (acceso remoto)
+# Copia `.env.example` → `.env.local` y deja LICENSE_ACTIVE=true para desarrollo.
+# En Vercel, define LICENSE_ACTIVE en Environment Variables. Solo el valor exacto
+# `true` abre la app; cualquier otro (o un fallo de red) muestra la pantalla de pausa.
+# El endpoint vive en `api/check-license.ts`; en local lo replica el middleware de Vite.
+
 # Verificación visual de layout (requiere `npm run build` + `npm run preview` en otra terminal).
 # Captura Hoy, Nueva comida, Calendario y el detalle del día a 375×667 y 320×568, y comprueba
 # por consola que el botón «Guardar comida» no queda tapado por la barra de navegación.
