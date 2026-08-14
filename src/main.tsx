@@ -11,13 +11,13 @@ import { ToastProvider } from '@/components/Toast';
 import { AppProvider } from '@/store/AppContext';
 import '@/index.css';
 
-if (import.meta.env.MODE !== 'test') {
-  posthog.init('phc_mRPBy6Set8D6tYo7RGjNRW6FwsyU7QnY7xJjrmWDbyEj', {
-    api_host: 'https://eu.i.posthog.com',
-    // Crea un perfil por visitante anónimo para contar usuarios únicos.
-    person_profiles: 'always',
-    persistence: 'localStorage+cookie',
-  });
+posthog.init('phc_mRPBy6Set8D6tYo7RGjNRW6FwsyU7QnY7xJjrmWDbyEj', {
+  api_host: 'https://eu.i.posthog.com',
+  person_profiles: 'always',
+  persistence: 'localStorage+cookie',
+});
+if (typeof window !== 'undefined') {
+  (window as any).posthog = posthog;
 }
 
 const contenedor = document.getElementById('root');
