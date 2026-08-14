@@ -1,4 +1,4 @@
-import '@/lib/posthog';
+import { identifyDispositivo, posthog } from '@/lib/analytics';
 import { Analytics } from '@vercel/analytics/react';
 import { PostHogProvider } from 'posthog-js/react';
 import { StrictMode } from 'react';
@@ -11,10 +11,10 @@ import { LicenciaGate } from '@/components/LicenciaGate';
 import { PostHogPageviews } from '@/components/PostHogPageviews';
 import { Splash } from '@/components/Splash';
 import { ToastProvider } from '@/components/Toast';
-import posthog from '@/lib/posthog';
 import { AppProvider } from '@/store/AppContext';
 import '@/index.css';
 
+identifyDispositivo();
 registerSW({ immediate: true });
 
 const contenedor = document.getElementById('root');

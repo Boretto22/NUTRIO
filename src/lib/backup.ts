@@ -1,3 +1,4 @@
+import { obtenerOCrearDeviceId } from '@/lib/dispositivo';
 import { formatoCorto, hoyISO } from '@/lib/fechas';
 import { normalizarEstado, migrar } from '@/lib/storage';
 import type { AppState, DiaPlanificado, DiaRegistro } from '@/types';
@@ -19,6 +20,7 @@ export interface ValidacionBackup {
   error?: string;
   estado?: AppState;
   resumen?: ResumenBackup;
+  deviceId?: string;
 }
 
 export function nombreArchivoBackup(fecha: string = hoyISO()): string {
@@ -26,7 +28,11 @@ export function nombreArchivoBackup(fecha: string = hoyISO()): string {
 }
 
 export function serializarBackup(estado: AppState): string {
-  return JSON.stringify(estado, null, 2);
+  return JSON.stringify({ ...estado, deviceId: obtenerOCrearDeviceId() }, null, 2);
+}
+
+export function extraerDeviceIdBackup(bruto: Record<string, unknown>): string | undefined {
+  return typeof bruto.deviceId === 'string' && bruto.deviceId.length > 0 ? bruto.deviceId : undefined;
 }
 
 export function descargarBackup(estado: AppState): void {
@@ -125,7 +131,12 @@ export function validarBackup(json: string): ValidacionBackup {
   }
 
   const estado = migrar(obj);
-  return { ok: true, estado, resumen: resumirEstado(estado) };
+  return {
+    ok: true,
+    estado,
+    resumen: resumirEstado(estado),
+    deviceId: extraerDeviceIdBackup(obj),
+  };
 }
 
 /**

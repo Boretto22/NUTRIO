@@ -8,6 +8,7 @@ import { Modal } from '@/components/Modal';
 import { AYUDA_FRUTA } from '@/data/alimentos';
 import { factorSugerido } from '@/data/factoresConversion';
 import { GRUPOS, GRUPOS_ORDEN } from '@/data/grupos';
+import { track } from '@/lib/analytics';
 import {
   bloquesAGramos,
   formatearBloques,
@@ -117,7 +118,10 @@ export function ConsultaAlimentos() {
                 <li key={a.id}>
                   <button
                     type="button"
-                    onClick={() => setDetalle(a)}
+                    onClick={() => {
+                      setDetalle(a);
+                      track('alimento_consultado', { alimentoId: a.id });
+                    }}
                     className="tarjeta flex w-full items-center gap-2.5 p-3 text-left transition-colors hover:border-neutral-300 dark:hover:border-neutral-700"
                   >
                     <span

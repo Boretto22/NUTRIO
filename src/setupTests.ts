@@ -31,6 +31,9 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
       headers: { 'Content-Type': 'application/json' },
     });
   }
+  if (/posthog\.com/i.test(url)) {
+    return new Response('', { status: 200 });
+  }
   if (fetchOriginal) return fetchOriginal(input, init);
   throw new Error(`fetch no mockeado para ${url}`);
 }) as typeof fetch;

@@ -52,10 +52,25 @@ function licenciaLocal(activa: boolean): Plugin {
   };
 }
 
+function avisoPosthog(key: string): Plugin {
+  return {
+    name: 'nutrio-aviso-posthog',
+    configResolved() {
+      if (!key) {
+        console.warn(
+          '\n[PostHog] VITE_POSTHOG_KEY no está definida. Los eventos no se enviarán.\n' +
+            'Añádela en .env.local (dev) o en el panel de Vercel/Netlify y vuelve a desplegar.\n',
+        );
+      }
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   // Cadena vacía: también carga LICENSE_ACTIVE (sin prefijo VITE_).
   const env = loadEnv(mode, process.cwd(), '');
   const licenciaActiva = env.LICENSE_ACTIVE === 'true';
+  const posthogKey = env.VITE_POSTHOG_KEY ?? '';
 
   return {
     base: './',
@@ -63,6 +78,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       licenciaLocal(licenciaActiva),
+      avisoPosthog(posthogKey),
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: false,
@@ -70,13 +86,17 @@ export default defineConfig(({ mode }) => {
         workbox: {
           globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
           navigateFallback: 'index.html',
-          navigateFallbackDenylist: [/^\/api\//],
+          navigateFallbackDenylist: [/^\/api\//, /posthog\.com/i],
           cleanupOutdatedCaches: true,
           skipWaiting: true,
           clientsClaim: true,
           runtimeCaching: [
             {
-              urlPattern: /^https:\/\/([a-z0-9-]+\.)?(i\.)?posthog\.com\/.*/i,
+              urlPattern: /^https:\/\/([a-z0-9-]+\.)?i\.posthog\.com\/.*/i,
+              handler: 'NetworkOnly',
+            },
+            {
+              urlPattern: /^https:\/\/([a-z0-9-]+\.)?posthog\.com\/.*/i,
               handler: 'NetworkOnly',
             },
           ],

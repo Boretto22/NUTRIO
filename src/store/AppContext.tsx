@@ -10,6 +10,8 @@ import {
 
 import { ALIMENTOS, ALIMENTOS_POR_ID } from '@/data/alimentos';
 import { COMIDA_EXTRA, clonar, planSeed } from '@/data/planSeed';
+import { track } from '@/lib/analytics';
+import { estadoDelDia } from '@/lib/bloques';
 import { hoyISO } from '@/lib/fechas';
 import * as plan from '@/lib/planificacion';
 import { cargarEstado, estadoInicial, guardarEstado } from '@/lib/storage';
@@ -185,6 +187,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dias: { ...prev.dias, [fecha]: nuevoDia(fecha, planId, prev.planes[planId]) },
       };
     });
+    track('plan_dia_elegido', { planId });
   }, []);
 
   const setYogur = useCallback(
@@ -198,17 +201,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [actualizarDia],
   );
 
-  const guardarPlato = useCallback(
-    (fecha: string, plato: Plato) =>
-      actualizarDia(fecha, (d) => {
-        const existe = d.platos.some((p) => p.id === plato.id);
-        const platos = existe
-          ? d.platos.map((p) => (p.id === plato.id ? plato : p))
-          : [...d.platos, plato];
-        return { ...d, platos };
-      }),
-    [actualizarDia],
-  );
+  const guardarPlato = useCallback((fecha: string, plato: Plato) => {
+    setEstado((prev) => {
+      const dia = prev.dias[fecha];
+      if (!dia) return prev;
+      const existe = dia.platos.some((p) => p.id === plato.id);
+      const platos = existe
+        ? dia.platos.map((p) => (p.id === plato.id ? plato : p))
+        : [...dia.platos, plato];
+      const siguienteDia = { ...dia, platos };
+      const siguiente = { ...prev, dias: { ...prev.dias, [fecha]: siguienteDia } };
+      const tolerancia = prev.ajustes.toleranciaBloques;
+      const antes = estadoDelDia(dia, ALIMENTOS_POR_ID, tolerancia);
+      const despues = estadoDelDia(siguienteDia, ALIMENTOS_POR_ID, tolerancia);
+      if (antes !== 'cumplido' && despues === 'cumplido') {
+        track('dia_completado');
+      }
+      return siguiente;
+    });
+    track('comida_guardada', {
+      comidaId: plato.comidaId,
+      nIngredientes: plato.ingredientes.length,
+    });
+  }, []);
 
   const eliminarPlato = useCallback(
     (fecha: string, platoId: string) =>
@@ -276,7 +291,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const guardarPlanificado = useCallback(
-    (fecha: string, plato: PlatoPlanificado) =>
+    (fecha: string, plato: PlatoPlanificado) => {
       actualizarPlanificado(fecha, (d) => {
         const existe = d.platos.some((p) => p.id === plato.id);
         return {
@@ -285,7 +300,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? d.platos.map((p) => (p.id === plato.id ? plato : p))
             : [...d.platos, plato],
         };
-      }),
+      });
+      track('plato_planificado', {
+        comidaId: plato.comidaId,
+        nIngredientes: plato.ingredientes.length,
+      });
+    },
     [actualizarPlanificado],
   );
 
@@ -318,11 +338,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const confirmarPlanificado = useCallback(
-    (fecha: string, platoId: string) =>
-      setEstado((prev) => plan.confirmarPlanificado(prev, fecha, platoId)),
-    [],
-  );
+  const confirmarPlanificado = useCallback((fecha: string, platoId: string) => {
+    setEstado((prev) => {
+      const previsto = prev.planificacion[fecha]?.platos.find((p) => p.id === platoId);
+      const yaConfirmado = prev.dias[fecha]?.platos.some((p) => p.planificadoId === platoId);
+      const siguiente = plan.confirmarPlanificado(prev, fecha, platoId);
+      if (previsto && !yaConfirmado && siguiente !== prev) {
+        track('planificado_confirmado', { comidaId: previsto.comidaId });
+      }
+      return siguiente;
+    });
+  }, []);
 
   const deshacerConfirmacion = useCallback(
     (fecha: string, platoId: string) =>

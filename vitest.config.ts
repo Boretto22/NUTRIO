@@ -13,6 +13,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      'posthog-js/react': fileURLToPath(new URL('./src/test/posthog-react-stub.tsx', import.meta.url)),
+      'posthog-js': fileURLToPath(new URL('./src/test/posthog-stub.ts', import.meta.url)),
     },
   },
   test: {

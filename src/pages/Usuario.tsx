@@ -26,6 +26,7 @@ import {
   type ResumenBackup,
 } from '@/lib/backup';
 import { formatearBloques } from '@/lib/bloques';
+import { restaurarDeviceId, track } from '@/lib/analytics';
 import { useApp } from '@/store/useApp';
 import type { AppState } from '@/types';
 
@@ -43,9 +44,11 @@ export function Usuario() {
   const { toast } = useToast();
   const inputArchivo = useRef<HTMLInputElement>(null);
 
-  const [importacion, setImportacion] = useState<{ estado: AppState; resumen: ResumenBackup } | null>(
-    null,
-  );
+  const [importacion, setImportacion] = useState<{
+    estado: AppState;
+    resumen: ResumenBackup;
+    deviceId?: string;
+  } | null>(null);
   const [confirmarBorrado, setConfirmarBorrado] = useState(false);
   const [textoBorrado, setTextoBorrado] = useState('');
   const [seccionAbierta, setSeccionAbierta] = useState<number | null>(null);
@@ -59,7 +62,11 @@ export function Usuario() {
       toast(resultado.error ?? 'El backup no es válido', 'error');
       return;
     }
-    setImportacion({ estado: resultado.estado, resumen: resultado.resumen });
+    setImportacion({
+      estado: resultado.estado,
+      resumen: resultado.resumen,
+      deviceId: resultado.deviceId,
+    });
   };
 
   return (
@@ -224,6 +231,7 @@ export function Usuario() {
             className="btn-secundario w-full"
             onClick={() => {
               descargarBackup(estado);
+              track('backup_exportado');
               toast('Backup descargado');
             }}
           >
@@ -331,8 +339,10 @@ export function Usuario() {
                 type="button"
                 className="btn-primario w-full"
                 onClick={() => {
+                  if (importacion.deviceId) restaurarDeviceId(importacion.deviceId);
                   reemplazarEstado(fusionarEstados(estado, importacion.estado));
                   setImportacion(null);
+                  track('backup_importado');
                   toast('Backup fusionado con tus datos');
                 }}
               >
@@ -342,8 +352,10 @@ export function Usuario() {
                 type="button"
                 className="btn-peligro w-full"
                 onClick={() => {
+                  if (importacion.deviceId) restaurarDeviceId(importacion.deviceId);
                   reemplazarEstado(importacion.estado);
                   setImportacion(null);
+                  track('backup_importado');
                   toast('Datos reemplazados por el backup');
                 }}
               >

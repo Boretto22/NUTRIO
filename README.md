@@ -3,8 +3,9 @@
 Aplicación web (PWA instalable, mobile-first) para el seguimiento diario de un plan nutricional
 basado en el **sistema de bloques / intercambio de alimentos**.
 
-Todos los datos se guardan **en el propio dispositivo** con `localStorage`. No hay backend, no hay
-cuentas y no se envía nada por la red: la app funciona completamente offline una vez cargada.
+Todos los datos se guardan **en el propio dispositivo** con `localStorage`. No hay
+cuentas de usuario. La app funciona offline una vez cargada; en producción consulta
+la licencia remota y, si está configurado, envía analítica anónima a PostHog (EU).
 
 ---
 
@@ -26,6 +27,13 @@ npm run icons     # regenera emblem/wordmark/lockup + iconos PWA desde logo.png
 # En Vercel, define LICENSE_ACTIVE en Environment Variables. Solo el valor exacto
 # `true` abre la app; cualquier otro (o un fallo de red) muestra la pantalla de pausa.
 # El endpoint vive en `api/check-license.ts`; en local lo replica el middleware de Vite.
+
+# PostHog (analítica, región EU)
+# En `.env.local`: VITE_POSTHOG_KEY (token phc_…) y
+# VITE_POSTHOG_HOST=https://eu.i.posthog.com
+# En Vercel/Netlify hay que dar de alta las mismas variables en el panel del
+# proyecto y **volver a desplegar**: Vite las incrusta en tiempo de build.
+# Si faltan, el build avisa y la app no envía eventos (no se cae).
 
 # Verificación visual de layout (requiere `npm run build` + `npm run preview` en otra terminal).
 # Captura Hoy, Nueva comida, Calendario y el detalle del día a 375×667 y 320×568, y comprueba
