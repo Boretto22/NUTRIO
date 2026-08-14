@@ -1,15 +1,15 @@
-import posthogJs from 'posthog-js';
+import { posthog as posthogNamed } from 'posthog-js';
+import * as PostHogLib from 'posthog-js';
 import type { PostHog, PostHogConfig } from 'posthog-js';
 
 export const POSTHOG_TOKEN = 'phc_mRPBy6Set8D6tYo7RGjNRW6FwsyU7QnY7xJjrmWDbyEj';
 
-export const POSTHOG_OPTIONS: Partial<PostHogConfig> & { defaults?: string } = {
+const OPCIONES: Partial<PostHogConfig> & { defaults?: string } = {
   api_host: 'https://eu.i.posthog.com',
   ui_host: 'https://eu.posthog.com',
   defaults: '2026-05-30',
   person_profiles: 'always',
   persistence: 'localStorage+cookie',
-  // HashRouter no cambia location.pathname; las pageviews van a mano.
   capture_pageview: false,
   capture_pageleave: true,
   autocapture: true,
@@ -21,23 +21,35 @@ declare global {
   }
 }
 
-function clienteActual(): PostHog {
-  if (typeof window !== 'undefined' && window.posthog) return window.posthog;
-  return posthogJs;
+/**
+ * En Vite/Node el `import default` de posthog-js es un namespace sin `.init`.
+ * El cliente real es el named export `posthog` (o `default.default` en CJS).
+ */
+function resolverSdk(): PostHog {
+  const candidatos: unknown[] = [
+    posthogNamed,
+    (PostHogLib as { posthog?: PostHog }).posthog,
+    (PostHogLib as { default?: PostHog }).default,
+    (PostHogLib as { default?: { default?: PostHog } }).default?.default,
+  ];
+  for (const candidato of candidatos) {
+    if (candidato && typeof (candidato as PostHog).init === 'function') {
+      return candidato as PostHog;
+    }
+  }
+  throw new Error('PostHog SDK no expone init()');
 }
 
-function esSnippet(valor: unknown): boolean {
-  return Boolean(valor) && typeof valor === 'object' && '__SV' in (valor as object);
-}
+const posthog = resolverSdk();
 
-function arrancarSdkEmpaquetado(): void {
-  window.posthog = posthogJs;
+if (typeof window !== 'undefined') {
+  window.posthog = posthog;
   try {
-    if (!posthogJs.__loaded) {
-      posthogJs.init(POSTHOG_TOKEN, {
-        ...POSTHOG_OPTIONS,
+    if (!posthog.__loaded) {
+      posthog.init(POSTHOG_TOKEN, {
+        ...OPCIONES,
         loaded: () => {
-          window.posthog = posthogJs;
+          window.posthog = posthog;
         },
         before_send: (event) => {
           if (!event) return event;
@@ -50,7 +62,7 @@ function arrancarSdkEmpaquetado(): void {
                 $pathname: `${parsed.pathname}${parsed.hash}`,
               };
             } catch {
-              /* URL malformada: se envía igual */
+              /* URL malformada */
             }
           }
           return event;
@@ -62,30 +74,5 @@ function arrancarSdkEmpaquetado(): void {
   }
 }
 
-if (typeof window !== 'undefined') {
-  if (!window.posthog?.__loaded) {
-    if (esSnippet(window.posthog) && window.posthog !== posthogJs) {
-      window.setTimeout(() => {
-        if (!window.posthog?.__loaded) arrancarSdkEmpaquetado();
-      }, 4000);
-    } else {
-      arrancarSdkEmpaquetado();
-    }
-  }
-}
-
-/** Siempre apunta al cliente vivo en `window.posthog` (snippet o SDK empaquetado). */
-export const posthog: PostHog = new Proxy(posthogJs, {
-  get(_objetivo, prop) {
-    const cliente = clienteActual();
-    const valor = cliente[prop as keyof PostHog];
-    return typeof valor === 'function' ? valor.bind(cliente) : valor;
-  },
-  set(_objetivo, prop, valor) {
-    const cliente = clienteActual() as unknown as Record<PropertyKey, unknown>;
-    cliente[prop] = valor;
-    return true;
-  },
-});
-
+export { posthog };
 export default posthog;
