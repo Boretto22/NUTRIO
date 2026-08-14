@@ -14,6 +14,8 @@
      * inferior la suben para no tapar los botones (ver FormularioComida).
      */
     --toast-bottom: calc(var(--nav-total) + 2.25rem);
+    /* Crema del logo — fuente de verdad para fondos claros. */
+    --color-crema: #f4f4f1;
   }
 
   html.dark {
@@ -28,7 +30,8 @@
 
   body {
     /* Crema del logo en claro; negro neutro en oscuro. */
-    @apply bg-crema font-sans text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100;
+    @apply font-sans text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100;
+    background-color: var(--color-crema);
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
   }
@@ -45,7 +48,8 @@
   }
 
   *:focus-visible {
-    @apply outline-none ring-2 ring-marca-500 ring-offset-2 ring-offset-crema dark:ring-offset-neutral-950;
+    @apply outline-none ring-2 ring-marca-500 ring-offset-2 dark:ring-offset-neutral-950;
+    --tw-ring-offset-color: var(--color-crema);
   }
 }
 
@@ -97,8 +101,13 @@
    * nunca puede quedar tapada por la navegación.
    */
   .panel-pantalla {
-    @apply fixed inset-0 z-30 mx-auto flex max-w-md flex-col bg-crema dark:bg-neutral-950;
+    @apply fixed inset-0 z-30 mx-auto flex max-w-md flex-col;
+    background-color: var(--color-crema);
     padding-bottom: var(--nav-total);
+  }
+
+  .dark .panel-pantalla {
+    @apply bg-neutral-950;
   }
 
   /* Resalte temporal del plato recién guardado al volver a Hoy. */

@@ -44,8 +44,13 @@ export default {
           800: '#1B463D',
           900: '#163630',
         },
-        /** Fondos de marca: el crema del logo y el verde legible sobre oscuro. */
-        crema: '#F4F4F1',
+        /**
+         * Crema del logo. DEFAULT permite `bg-crema` / `ring-offset-crema`.
+         * También expuesto como CSS var `--color-crema` en `src/index.css`.
+         */
+        crema: {
+          DEFAULT: '#F4F4F1',
+        },
         'marca-claro': '#4FB397',
       },
       boxShadow: {
