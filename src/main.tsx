@@ -1,40 +1,40 @@
+import '@/lib/posthog';
 import { Analytics } from '@vercel/analytics/react';
-import posthog from 'posthog-js';
+import { PostHogProvider } from 'posthog-js/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
+import { registerSW } from 'virtual:pwa-register';
 
 import App from '@/App';
 import { LicenciaGate } from '@/components/LicenciaGate';
+import { PostHogPageviews } from '@/components/PostHogPageviews';
 import { Splash } from '@/components/Splash';
 import { ToastProvider } from '@/components/Toast';
+import posthog from '@/lib/posthog';
 import { AppProvider } from '@/store/AppContext';
 import '@/index.css';
 
-posthog.init('phc_mRPBy6Set8D6tYo7RGjNRW6FwsyU7QnY7xJjrmWDbyEj', {
-  api_host: 'https://eu.i.posthog.com',
-  person_profiles: 'always',
-  persistence: 'localStorage+cookie',
-});
-if (typeof window !== 'undefined') {
-  (window as any).posthog = posthog;
-}
+registerSW({ immediate: true });
 
 const contenedor = document.getElementById('root');
 if (!contenedor) throw new Error('No se encontró el elemento #root');
 
 createRoot(contenedor).render(
   <StrictMode>
-    <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <AppProvider>
-        <ToastProvider>
-          <LicenciaGate>
-            <App />
-            <Splash />
-          </LicenciaGate>
-          <Analytics />
-        </ToastProvider>
-      </AppProvider>
-    </HashRouter>
+    <PostHogProvider client={posthog}>
+      <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <PostHogPageviews />
+        <AppProvider>
+          <ToastProvider>
+            <LicenciaGate>
+              <App />
+              <Splash />
+            </LicenciaGate>
+            <Analytics />
+          </ToastProvider>
+        </AppProvider>
+      </HashRouter>
+    </PostHogProvider>
   </StrictMode>,
 );

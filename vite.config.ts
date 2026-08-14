@@ -65,10 +65,21 @@ export default defineConfig(({ mode }) => {
       licenciaLocal(licenciaActiva),
       VitePWA({
         registerType: 'autoUpdate',
+        injectRegister: false,
         includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png', 'og-image.png'],
         workbox: {
           globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
           navigateFallback: 'index.html',
+          navigateFallbackDenylist: [/^\/api\//],
+          cleanupOutdatedCaches: true,
+          skipWaiting: true,
+          clientsClaim: true,
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/([a-z0-9-]+\.)?(i\.)?posthog\.com\/.*/i,
+              handler: 'NetworkOnly',
+            },
+          ],
         },
         manifest: {
           name: 'Nutrio',
@@ -98,6 +109,9 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
       },
+    },
+    optimizeDeps: {
+      include: ['posthog-js', 'posthog-js/react'],
     },
   };
 });
